@@ -126,3 +126,14 @@ func (c *Classifier) FindOrInsert(categoryName string) *Category {
 	}
 	return &c.Categories[i]
 }
+
+func (c Classifier) CategoryNames() []string {
+	c.RLock()
+	defer c.Unlock()
+
+	names := []string{}
+	for _, category := range c.Categories {
+		names = append(names, category.Name)
+	}
+	return names
+}
