@@ -1,6 +1,9 @@
 package naivegopher
 
+import "sync"
+
 type Category struct {
+	*sync.Mutex
 	Name            string
 	WordFrequencies map[string]float64
 	Total           int
@@ -9,16 +12,21 @@ type Category struct {
 // GetWordProbability returns P(W|C_j):
 // the probability of seeing a particular word W in a document of this class.
 func (c Category) GetWordProbability(word string) float64 {
-	value, ok := c.WordFrequencies[word]
-	if !ok {
-		return defaultProabability
+	c.Lock()
+	defer c.Unlock()
+
+	if value, ok := c.WordFrequencies[word]; ok {
+		return float64(value) / float64(c.Total)
 	}
-	return float64(value) / float64(c.Total)
+	return defaultProabability
 }
 
 // GetWordsProbability returns P(D|C_j): the probability of seeing
 // this set (unique set) of words in a document in this category.
 func (c Category) GetWordsProbability(words []string) float64 {
+	c.Lock()
+	defer c.Unlock()
+
 	p := float64(1.0)
 	filteredWords := words[:0]
 	for i, word := range words {

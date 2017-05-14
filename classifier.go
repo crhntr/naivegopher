@@ -12,7 +12,7 @@ import (
 const defaultProabability = 0.00000000001
 
 type Classifier struct {
-	sync.RWMutex
+	*sync.RWMutex
 	Categories []Category
 	Learned    int
 	Seen       int64
@@ -53,6 +53,7 @@ func (c *Classifier) ProbableCategoreies(r io.Reader) ([]float64, []*Category) {
 func (c *Classifier) PriorProbabilities() []float64 {
 	c.RLock()
 	defer c.RUnlock()
+
 	n := len(c.Categories)
 	priors := make([]float64, n, n)
 	sum := 0
@@ -70,6 +71,7 @@ func (c *Classifier) PriorProbabilities() []float64 {
 	}
 	return priors
 }
+
 func (c *Classifier) Len() int {
 	c.RLock()
 	defer c.RUnlock()
@@ -120,6 +122,7 @@ func (c *Classifier) FindOrInsert(categoryName string) *Category {
 		Name:            categoryName,
 		WordFrequencies: make(map[string]float64),
 		Total:           0,
+		Mutex:           &sync.Mutex{},
 	}
 	return &c.Categories[i]
 }
