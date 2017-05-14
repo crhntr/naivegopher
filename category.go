@@ -17,11 +17,29 @@ func (c Category) GetWordProbability(word string) float64 {
 }
 
 // GetWordsProbability returns P(D|C_j): the probability of seeing
-// this set of words in a document of this class.
+// this set (unique set) of words in a document in this category.
 func (c Category) GetWordsProbability(words []string) float64 {
 	p := float64(1.0)
-	for _, word := range words {
+	filteredWords := words[:0]
+	for i, word := range words {
+		if uniqueInSlice(word, words[:i]) {
+			filteredWords = append(filteredWords, word)
+		}
+	}
+	for _, word := range filteredWords {
 		p *= c.GetWordProbability(word)
 	}
 	return p
+}
+
+func uniqueInSlice(str string, slice []string) bool {
+	count := 0
+	for _, s := range slice {
+		if str == s {
+			if count++; count > 1 {
+				return false
+			}
+		}
+	}
+	return true
 }
