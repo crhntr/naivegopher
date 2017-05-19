@@ -9,19 +9,19 @@ type BytesReader interface {
 	ReadBytes(delim byte) ([]byte, error)
 }
 
-func nextWord(sr BytesReader) string {
+func nextWord(sr BytesReader) (string, bool) {
 	for {
 		wordCandidate, err := sr.ReadBytes(' ')
 		if err != nil {
 			if err == io.EOF {
-				return ""
+				return "", true
 			}
 			panic(err)
 		}
-
+		wordCandidate = bytes.ToLower(wordCandidate)
 		wordCandidate = trimWord(wordCandidate)
 		if !skipWord(wordCandidate) {
-			return string(wordCandidate)
+			return string(wordCandidate), false
 		}
 	}
 }
@@ -119,6 +119,7 @@ var skipWords = [][]byte{
 	[]byte("at"),
 	[]byte("shows"),
 	[]byte("can"),
+	[]byte("their"),
 	// []byte("amount"),
 	[]byte("were"),
 	[]byte("after"),

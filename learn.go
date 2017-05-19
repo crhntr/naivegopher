@@ -18,17 +18,16 @@ var (
 
 // Learn will accept new training documents for
 // supervised learning.
-func (classifier *Classifier) Learn(categoryName string, r io.Reader) error {
+func (classifier *Classifier) Learn(categoryName string, r io.Reader) {
 	reader := bufio.NewReaderSize(r, bufferSize)
 	category := classifier.FindOrInsert(categoryName)
 	for {
-		word := nextWord(reader)
-		if word == "" {
+		word, done := nextWord(reader)
+		if word == "" && done {
 			break
 		}
 		category.WordFrequencies[word]++
-		category.Total++
+		category.TotalWordCount++
 	}
 	classifier.Learned++
-	return nil
 }
