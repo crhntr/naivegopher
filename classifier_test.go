@@ -14,15 +14,15 @@ func TestFindOrInsert(t *testing.T) {
 	if len(c.Categories) != 0 {
 		t.Fail()
 	}
-	c.FindOrInsert("foo")
+	c.findOrInsert("foo")
 	if len(c.Categories) != 1 {
 		t.Fail()
 	}
-	c.FindOrInsert("bar")
+	c.findOrInsert("bar")
 	if len(c.Categories) != 2 {
 		t.Fail()
 	}
-	c.FindOrInsert("bar")
+	c.findOrInsert("bar")
 	if len(c.Categories) != 2 {
 		t.Fail()
 	}
@@ -33,15 +33,15 @@ func TestCategoryNames(t *testing.T) {
 	if len(c.CategoryNames()) != 0 {
 		t.Fail()
 	}
-	c.FindOrInsert("foo")
+	c.findOrInsert("foo")
 	if len(c.CategoryNames()) != 1 {
 		t.Fail()
 	}
-	c.FindOrInsert("bar")
+	c.findOrInsert("bar")
 	if len(c.CategoryNames()) != 2 {
 		t.Fail()
 	}
-	c.FindOrInsert("bar")
+	c.findOrInsert("bar")
 	if len(c.CategoryNames()) != 2 {
 		t.Fail()
 	}
@@ -52,11 +52,11 @@ func TestFindCategory(t *testing.T) {
 	if c.FindCategory("foo") >= 0 {
 		t.Fail()
 	}
-	c.FindOrInsert("foo")
+	c.findOrInsert("foo")
 	if c.FindCategory("foo") < 0 {
 		t.Fail()
 	}
-	c.FindOrInsert("bar")
+	c.findOrInsert("bar")
 	if c.FindCategory("bar") != c.FindCategory("bar") {
 		t.Fail()
 	}

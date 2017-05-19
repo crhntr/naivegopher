@@ -3,15 +3,14 @@ package naivegopher
 import (
 	"bufio"
 	"io"
-	"sort"
-	"strings"
+	"sync"
 	"sync/atomic"
 )
 
 const minimumProbability = 0.000000001
 
 type Classifier struct {
-	// *sync.RWMutex
+	*sync.RWMutex
 	Categories []Category
 	Learned    int
 	Seen       int64
@@ -19,7 +18,7 @@ type Classifier struct {
 
 func NewClassifier() *Classifier {
 	return &Classifier{
-		// RWMutex:    &sync.RWMutex{},
+		RWMutex:    &sync.RWMutex{},
 		Categories: []Category{},
 		Learned:    0,
 		Seen:       0,
@@ -43,6 +42,9 @@ func max(slc []float64) int {
 }
 
 func (c *Classifier) ProbableCategoreies(r io.Reader) (scores Scores) {
+	c.RLock()
+	defer c.RUnlock()
+
 	n := len(c.Categories)
 	scores = make([]float64, n)
 
@@ -86,8 +88,8 @@ func (c *Classifier) ProbableCategoreies(r io.Reader) (scores Scores) {
 // classes provided -- P(C_j).
 //
 func (c *Classifier) PriorProbabilities() []float64 {
-	// c.RLock()
-	// defer c.RUnlock()
+	c.RLock()
+	defer c.RUnlock()
 
 	n := len(c.Categories)
 	priors := make([]float64, n, n)
@@ -106,26 +108,11 @@ func (c *Classifier) PriorProbabilities() []float64 {
 	return priors
 }
 
-func (c *Classifier) Len() int {
-	// c.RLock()
-	// defer c.RUnlock()
-	return len(c.Categories)
-}
-func (c *Classifier) Swap(i, j int) {
-	// c.Lock()
-	// defer c.Unlock()
-	c.Categories[i], c.Categories[j] = c.Categories[j], c.Categories[i]
-}
-func (c *Classifier) Less(i, j int) bool {
-	// c.RLock()
-	// defer c.RUnlock()
-	return strings.Compare(c.Categories[i].Name, c.Categories[j].Name) < 0
-}
-
 // FindCategory returns the index of the category with a given name
 func (c *Classifier) FindCategory(name string) int {
-	// c.RLock()
-	// defer c.RUnlock()
+	c.RLock()
+	defer c.RUnlock()
+
 	for i, category := range c.Categories {
 		if category.Name == name {
 			return i
@@ -134,36 +121,10 @@ func (c *Classifier) FindCategory(name string) int {
 	return -1
 }
 
-// FindOrInsert searches for a Category with categoryName
-// if it does not find one it inserts a new category in the
-// correct ordered location
-func (c *Classifier) FindOrInsert(categoryName string) *Category {
-	// c.Lock()
-	// defer c.Unlock()
-	i := sort.Search(c.Len(), func(i int) bool {
-		return strings.Compare(c.Categories[i].Name, categoryName) >= 0
-	})
-	if i < c.Len() && c.Categories[i].Name == categoryName {
-		// categoryName is present at c.Categories[i]
-		return &c.Categories[i]
-	}
-
-	// categoryName is not present in data,
-	// but i is the index where it would be inserted.
-	c.Categories = append(c.Categories, Category{})
-	copy(c.Categories[i+1:], c.Categories[i:])
-	c.Categories[i] = Category{
-		Name:            categoryName,
-		WordFrequencies: make(map[string]int),
-		TotalWordCount:  0,
-		// Mutex:           &sync.Mutex{},
-	}
-	return &c.Categories[i]
-}
-
 func (c Classifier) CategoryNames() []string {
-	// c.RLock()
-	// defer c.Unlock()
+	c.RLock()
+	defer c.RUnlock()
+
 	names := []string{}
 	for _, category := range c.Categories {
 		names = append(names, category.Name)
